@@ -1,35 +1,36 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import * as SQLite from 'expo-sqlite';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  useEffect(() => {
+    async function initDB() {
+      // Abrimos o creamos la base de datos local
+      const db = await SQLite.openDatabaseAsync('primer_empleo.db');
+      
+      // Creamos la tabla de postulaciones si no existe (Esto es para nuestro CRUD)
+      await db.execAsync(`
+        PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS postulaciones (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          puesto TEXT NOT NULL,
+          empresa TEXT NOT NULL,
+          nombre TEXT NOT NULL,
+          correo TEXT NOT NULL,
+          telefono TEXT NOT NULL,
+          fecha_postulacion TEXT NOT NULL
+        );
+      `);
+      console.log("¡Base de datos y tabla de postulaciones listas!");
+    }
+    initDB();
+  }, []);
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="ofertas" />
+      <Stack.Screen name="postular" />
+    </Stack>
   );
 }
